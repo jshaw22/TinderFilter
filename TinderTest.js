@@ -1,26 +1,22 @@
+
+
 var request = require('request');
 var tinder = require('tinderjs');
+var fs = require('fs');
 var client = new tinder.TinderClient();
 
-var FB_USER_TOKEN = 'CAAGm0PX4ZCpsBAEHm0PkDfM45VbOktP6PioSCaajuQzGoSC9JRUs28tiFT4xTqIfFezZCdiM3B6ZAfA1rWsSzwRxIZASIOahhwJyHgZA6s8LsJrBQHfiEfA9N4ZCrx4RKOu2xGZCkdI8XZBkbNPcO2jCdZCrkQW1cZAnk0kZBu1Omet06qveyrjZChzPFzLr0lnz6cpbOAqqip0nZBoRuypOFWhFk';
+var accountSid = 'ACe25d9d023ac6181dd63481fa866a5e06';
+var authToken = '15b7f729e05ce1162eb67a3ab107b5f0';
+var twilio = require('twilio')(accountSid, authToken);
+
+var FB_USER_TOKEN = 'CAAGm0PX4ZCpsBAJHL40QN8HsXi2zs3nQ4KIwPEvx3exFIu1ldteLZBkpoZBJN3wHvNmLxJiWN2VYpZA7zw5gZBXKdJvcoEZADpCwtzTccDkakJFefupDes1hK59ZAOIkTgZBvnhEzdEAXd1XrZB8AQmZAAhPZCjrkhGPCNS4ioZBdLmOfUKPsYeJuSDvpZAfZCSAVdZCm175pGL3RyR6qlDGNeBKOrk';
 var FB_USER_ID = '2539134351764';
 
 
 //var URL = "http://i.imgur.com/REdTb8a.jpg";
-var URL;
-var pictureCount = 0;
-var pictureObj = {};
 
-var requestCallback = function(error, response, body, cb){
-  console.log("Request Callback Invoked")
-  if(!error && response.statusCode == 200){
-
-    var parsed = JSON.parse(body)
-    var attributes = parsed.face[0].attribute;
-    cb(attributes);
-  } 
-}
-
+/* Facial Recognition API served up by mashape. 
+If error being thrown then go to MashApe to get a new key*/ 
 var runFacialRecognition = function(URL, cb){
   var options = {
     url: 'https://faceplusplus-faceplusplus.p.mashape.com/detection/detect?url='+URL,
@@ -29,25 +25,56 @@ var runFacialRecognition = function(URL, cb){
       Accept: 'application/json'
     }
   }
-  request(options, requestCallback);
-}
+  request(options, function(error, response, body){
 
-//runFacialRecognition(options) 
+    if(!error && response.statusCode == 200){
+
+      var parsed = JSON.parse(body)
+
+      if (parsed.face[0] !== undefined){
+        var attributes = parsed.face[0].attribute;
+        cb(attributes);
+      }
+    } 
+  })
+}
+function autoSwiper(){
 client.authorize(
   FB_USER_TOKEN,
   FB_USER_ID,
   function() {
     client.getRecommendations(1, function(error, data){
-
-      data.results[0].photos.forEach(function(photo){
-        URL = photo.url;
-        console.log(URL)
-        runFacialRecognition(URL, function(val){
-          client.like(data._userID, function(val){
-            console.log("Liked!")
-          })
+      if(error){
+          console.log("There was an error from getting recommendations", error)
+        }
+      var id = data.results[0]._id;
+      var name = data.results[0].name;
+      var photoURL = data.results[0].photos[0].url;
+        runFacialRecognition(photoURL, function(val){
+          var race = val.race.value;
+          console.log("Analyzing facial features...!")
+          if(race === 'White' || race === 'Asian'){
+            client.like(id, function(error, data){
+              if(data.matched){
+                fs.appendFile('likeList.txt', name, function(err){
+                  console.log("There was an error writing to file", err)
+                })
+                twilio.messages.create({
+                  body: "You matched with" + name,
+                  to: "+14088880999",
+                  from: "+14084711842",
+                  }, function (err, message) {
+                    console.log("Message sent", message);
+                  })
+                console.log("You have matched with " + name + " !")
+                console.log("Here is one of her pics: " + photoURL)
+              }
+              if(error){
+                console.log("There was an error matching", error)
+              }
+            });
+          }
         });
-
       });
-    });
   });
+}
