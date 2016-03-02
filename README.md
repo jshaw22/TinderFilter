@@ -11,4 +11,8 @@ Originally concieved while talking to my friend Neeraj at a bar. He's a pretty c
 
 Happy 'swiping'! 
 
+
+#### Troubleshoot
+If you get *Failed to authenticate: Access Denied* change your Auth token with step 3 in the instructions. 
+
 Shout-out to @waynechaw for helping me debug some async callback issues. 
