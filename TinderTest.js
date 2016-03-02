@@ -4,13 +4,16 @@ var request = require('request');
 var tinder = require('tinderjs');
 var fs = require('fs');
 var client = new tinder.TinderClient();
+var keys = require('./authKeys.js');
 
 var accountSid = 'ACe25d9d023ac6181dd63481fa866a5e06';
 var authToken = '15b7f729e05ce1162eb67a3ab107b5f0';
 var twilio = require('twilio')(accountSid, authToken);
 
-var FB_USER_TOKEN = 'CAAGm0PX4ZCpsBAJHL40QN8HsXi2zs3nQ4KIwPEvx3exFIu1ldteLZBkpoZBJN3wHvNmLxJiWN2VYpZA7zw5gZBXKdJvcoEZADpCwtzTccDkakJFefupDes1hK59ZAOIkTgZBvnhEzdEAXd1XrZB8AQmZAAhPZCjrkhGPCNS4ioZBdLmOfUKPsYeJuSDvpZAfZCSAVdZCm175pGL3RyR6qlDGNeBKOrk';
-var FB_USER_ID = '2539134351764';
+var FB_USER_TOKEN = keys.fbUserToken;
+var FB_USER_ID = keys.fbUserID;
+console.log(FB_USER_TOKEN)
+console.log(FB_USER_ID)
 
 
 //var URL = "http://i.imgur.com/REdTb8a.jpg";
@@ -78,3 +81,5 @@ client.authorize(
       });
   });
 }
+
+autoSwiper();
